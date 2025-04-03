@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kridart - No-Code Game Engine</title>
+    <style>
+        :root {
+            --primary: #6e48aa;
+            --secondary: #9d50bb;
+            --dark: #1a1a2e;
+            --light: #f1f1f1;
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background-color: var(--light);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #43a047;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #fb8c00;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #e53935;
+        }
+
+        /* Main Editor Layout */
+        .editor-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Left Sidebar - Assets */
+        .sidebar {
+            width: 250px;
+            background-color: #252525;
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 0.8rem;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .asset-category {
+            margin-bottom: 1rem;
+        }
+
+        .category-title {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            background-color: #333;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .asset-item {
+            background-color: #333;
+            border-radius: 4px;
+            padding: 0.5rem;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.1s;
+        }
+
+        .asset-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .asset-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #555;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .asset-name {
+            font-size: 0.7rem;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* Main Canvas Area */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view-tabs {
+            display: flex;
+            background-color: #333;
+            border-bottom: 1px solid #444;
+        }
+
+        .view-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-right: 1px solid #444;
+        }
+
+        .view-tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .game-canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #222;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .canvas-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .play-button {
+            background-color: var(--success);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Right Sidebar - Properties */
+        .properties-panel {
+            width: 300px;
+            background-color: #252525;
+            border-left: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .properties-tabs {
+            display: flex;
+            border-bottom: 1px solid #444;
+        }
+
+        .property-tab {
+            flex: 1;
+            padding: 0.7rem;
+            text-align: center;
+            cursor: pointer;
+            border-right: 1px solid #444;
+        }
+
+        .property-tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .properties-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .property-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-group-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .property-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .property-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+        .property-control {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .property-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-value {
+            min-width: 30px;
+            text-align: center;
+        }
+
+        /* AI Assistant */
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .ai-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .ai-button:hover {
+            transform: scale(1.1);
+        }
+
+        .ai-panel {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 400px;
+            max-height: 500px;
+            background-color: #252525;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .ai-panel.active {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .ai-header {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .ai-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ai-message {
+            max-width: 80%;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .ai-user {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+
+        .ai-bot {
+            align-self: flex-start;
+            background-color: #333;
+            border-bottom-left-radius: 0;
+        }
+
+        .ai-input-container {
+            padding: 1rem;
+            border-top: 1px solid #444;
+            display: flex;
+            gap: 10px;
+        }
+
+        .ai-input {
+            flex: 1;
+            padding: 0.8rem;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .ai-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Asset Creation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: #252525;
+            border-radius: 10px;
+            width: 800px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 1rem;
+            border-top: 1px solid #444;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Asset Creator Tabs */
+        .creator-tabs {
+            display: flex;
+            border-bottom: 1px solid #444;
+            margin-bottom: 1.5rem;
+        }
+
+        .creator-tab {
+            padding: 0.7rem 1.5rem;
+            cursor: pointer;
+            border-right: 1px solid #444;
+        }
+
+        .creator-tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Drawing Canvas */
+        .drawing-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .drawing-tools {
+            display: flex;
+            gap: 10px;
+            padding: 0.5rem;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        .drawing-tool {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #444;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .drawing-tool.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        #drawing-canvas {
+            width: 100%;
+            height: 400px;
+            background-color: white;
+            border-radius: 5px;
+            cursor: crosshair;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .color-option.active {
+            border-color: white;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 200px;
+            }
+            .properties-panel {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                position: absolute;
+                left: -250px;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                transition: transform 0.3s;
+            }
+            .sidebar.active {
+                transform: translateX(250px);
+            }
+            .properties-panel {
+                position: absolute;
+                right: -250px;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                transition: transform 0.3s;
+            }
+            .properties-panel.active {
+                transform: translateX(-250px);
+            }
+            .toggle-sidebar {
+                display: block !important;
+            }
+        }
+
+        .toggle-sidebar {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <button class="toggle-sidebar">☰</button>
+            <div class="logo-icon">🎮</div>
+            <h1>Kridart</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary">
+                <span>🗃️</span> New Project
+            </button>
+            <button class="btn btn-success">
+                <span>▶️</span> Run
+            </button>
+            <button class="btn btn-primary">
+                <span>📤</span> Publish
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Editor -->
+    <div class="editor-container">
+        <!-- Left Sidebar - Assets -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Assets</div>
+                <button class="btn btn-primary" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;" id="create-asset-btn">
+                    + Create
+                </button>
+            </div>
+            <div class="sidebar-content">
+                <div class="asset-category">
+                    <div class="category-title">
+                        <span>Characters</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="assets-grid">
+                        <div class="asset-item" draggable="true" data-type="character">
+                            <div class="asset-icon">👨</div>
+                            <div class="asset-name">Player</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="character">
+                            <div class="asset-icon">👾</div>
+                            <div class="asset-name">Enemy</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="character">
+                            <div class="asset-icon">👧</div>
+                            <div class="asset-name">NPC</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="character">
+                            <div class="asset-icon">🦸</div>
+                            <div class="asset-name">Hero</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="asset-category">
+                    <div class="category-title">
+                        <span>Environment</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="assets-grid">
+                        <div class="asset-item" draggable="true" data-type="environment">
+                            <div class="asset-icon">🌳</div>
+                            <div class="asset-name">Tree</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="environment">
+                            <div class="asset-icon">🏠</div>
+                            <div class="asset-name">House</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="environment">
+                            <div class="asset-icon">🗻</div>
+                            <div class="asset-name">Mountain</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="environment">
+                            <div class="asset-icon">💧</div>
+                            <div class="asset-name">Water</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="asset-category">
+                    <div class="category-title">
+                        <span>Items</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="assets-grid">
+                        <div class="asset-item" draggable="true" data-type="item">
+                            <div class="asset-icon">⚔️</div>
+                            <div class="asset-name">Sword</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="item">
+                            <div class="asset-icon">🛡️</div>
+                            <div class="asset-name">Shield</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="item">
+                            <div class="asset-icon">💎</div>
+                            <div class="asset-name">Gem</div>
+                        </div>
+                        <div class="asset-item" draggable="true" data-type="item">
+                            <div class="asset-icon">🔑</div>
+                            <div class="asset-name">Key</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas Area -->
+        <div class="canvas-area">
+            <div class="view-tabs">
+                <div class="view-tab active">2D View</div>
+                <div class="view-tab">3D View</div>
+                <div class="view-tab">Code View</div>
+            </div>
+            <div class="game-canvas-container">
+                <canvas id="game-canvas"></canvas>
+                <div class="canvas-overlay" id="preview-overlay">
+                    <div class="play-button" id="play-button">
+                        ▶️ Play Game
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Properties -->
+        <div class="properties-panel">
+            <div class="properties-tabs">
+                <div class="property-tab active">Properties</div>
+                <div class="property-tab">Scene</div>
+                <div class="property-tab">Settings</div>
+            </div>
+            <div class="properties-content">
+                <div class="property-group">
+                    <div class="property-group-title">Transform</div>
+                    <div class="property-item">
+                        <label class="property-label">Position</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" class="property-control" placeholder="X">
+                            <input type="number" class="property-control" placeholder="Y">
+                        </div>
+                    </div>
+                    <div class="property-item">
+                        <label class="property-label">Rotation</label>
+                        <input type="number" class="property-control" placeholder="Degrees">
+                    </div>
+                    <div class="property-item">
+                        <label class="property-label">Scale</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" class="property-control" placeholder="X" value="1">
+                            <input type="number" class="property-control" placeholder="Y" value="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <div class="property-group-title">Physics</div>
+                    <div class="property-item">
+                        <label class="property-label">Gravity</label>
+                        <div class="range-container">
+                            <input type="range" class="property-control" min="0" max="20" value="9.8" step="0.1">
+                            <span class="range-value">9.8</span>
+                        </div>
+                    </div>
+                    <div class="property-item">
+                        <label class="property-label">Mass</label>
+                        <div class="range-container">
+                            <input type="range" class="property-control" min="0" max="100" value="1">
+                            <span class="range-value">1</span>
+                        </div>
+                    </div>
+                    <div class="property-item">
+                        <label class="property-label">Collider</label>
+                        <select class="property-control">
+                            <option>None</option>
+                            <option>Box</option>
+                            <option>Circle</option>
+                            <option>Polygon</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <div class="property-group-title">Appearance</div>
+                    <div class="property-item">
+                        <label class="property-label">Sprite</label>
+                        <select class="property-control">
+                            <option>Player</option>
+                            <option>Enemy</option>
+                            <option>Tree</option>
+                            <option>Custom...</option>
+                        </select>
+                    </div>
+                    <div class="property-item">
+                        <label class="property-label">Color</label>
+                        <input type="color" class="property-control" value="#ffffff">
+                    </div>
+                    <div class="property-item">
+                        <label class="property-label">Opacity</label>
+                        <div class="range-container">
+                            <input type="range" class="property-control" min="0" max="100" value="100">
+                            <span class="range-value">100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant -->
+    <div class="ai-assistant">
+        <div class="ai-panel" id="ai-panel">
+            <div class="ai-header">
+                <div>Kridart AI Assistant</div>
+                <button class="ai-close" id="ai-close">✕</button>
+            </div>
+            <div class="ai-messages" id="ai-messages">
+                <div class="ai-message ai-bot">
+                    Hello! I'm your Kridart AI assistant. How can I help you create your game today?
+                </div>
+            </div>
+            <div class="ai-input-container">
+                <input type="text" class="ai-input" id="ai-input" placeholder="Ask me to make changes to your game...">
+                <button class="ai-send" id="ai-send">➤</button>
+            </div>
+        </div>
+        <button class="ai-button" id="ai-button">AI</button>
+    </div>
+
+    <!-- Asset Creation Modal -->
+    <div class="modal-overlay" id="asset-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>Create New Asset</div>
+                <button class="modal-close" id="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="creator-tabs">
+                    <div class="creator-tab active">2D Sprite</div>
+                    <div class="creator-tab">3D Model</div>
+                    <div class="creator-tab">Sound</div>
+                </div>
+                <div class="drawing-area">
+                    <div class="drawing-tools">
+                        <div class="drawing-tool active" data-tool="brush">🖌️</div>
+                        <div class="drawing-tool" data-tool="eraser">🧽</div>
+                        <div class="drawing-tool" data-tool="line">📏</div>
+                        <div class="drawing-tool" data-tool="rect">⬛</div>
+                        <div class="drawing-tool" data-tool="circle">🔴</div>
+                        <div class="drawing-tool" data-tool="fill">🎨</div>
+                    </div>
+                    <div class="color-picker">
+                        <div class="color-option active" style="background-color: #ff0000;"></div>
+                        <div class="color-option" style="background-color: #00ff00;"></div>
+                        <div class="color-option" style="background-color: #0000ff;"></div>
+                        <div class="color-option" style="background-color: #ffff00;"></div>
+                        <div class="color-option" style="background-color: #ff00ff;"></div>
+                        <div class="color-option" style="background-color: #00ffff;"></div>
+                        <div class="color-option" style="background-color: #000000;"></div>
+                        <div class="color-option" style="background-color: #ffffff;"></div>
+                    </div>
+                    <canvas id="drawing-canvas" width="768" height="400"></canvas>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger">Cancel</button>
+                <button class="btn btn-success">Save Asset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const sidebar = document.querySelector('.sidebar');
+        const propertiesPanel = document.querySelector('.properties-panel');
+        const toggleSidebar = document.querySelector('.toggle-sidebar');
+        const viewTabs = document.querySelectorAll('.view-tab');
+        const propertyTabs = document.querySelectorAll('.property-tab');
+        const creatorTabs = document.querySelectorAll('.creator-tab');
+        const drawingTools = document.querySelectorAll('.drawing-tool');
+        const colorOptions = document.querySelectorAll('.color-option');
+        const aiButton = document.getElementById('ai-button');
+        const aiPanel = document.getElementById('ai-panel');
+        const aiClose = document.getElementById('ai-close');
+        const aiInput = document.getElementById('ai-input');
+        const aiSend = document.getElementById('ai-send');
+        const aiMessages = document.getElementById('ai-messages');
+        const createAssetBtn = document.getElementById('create-asset-btn');
+        const assetModal = document.getElementById('asset-modal');
+        const modalClose = document.getElementById('modal-close');
+        const previewOverlay = document.getElementById('preview-overlay');
+        const playButton = document.getElementById('play-button');
+        const drawingCanvas = document.getElementById('drawing-canvas');
+        const gameCanvas = document.getElementById('game-canvas');
+
+        // Initialize Canvas Context
+        const ctx = drawingCanvas.getContext('2d');
+        const gameCtx = gameCanvas.getContext('2d');
+        
+        // Set game canvas size
+        function resizeGameCanvas() {
+            const container = document.querySelector('.game-canvas-container');
+            gameCanvas.width = container.clientWidth;
+            gameCanvas.height = container.clientHeight;
+            
+            // Draw a simple grid for visualization
+            drawGrid();
+        }
+        
+        function drawGrid() {
+            gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+            gameCtx.strokeStyle = '#333';
+            gameCtx.lineWidth = 1;
+            
+            const gridSize = 20;
+            const cols = Math.ceil(gameCanvas.width / gridSize);
+            const rows = Math.ceil(gameCanvas.height / gridSize);
+            
+            // Vertical lines
+            for (let i = 0; i < cols; i++) {
+                gameCtx.beginPath();
+                gameCtx.moveTo(i * gridSize, 0);
+                gameCtx.lineTo(i * gridSize, gameCanvas.height);
+                gameCtx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let i = 0; i < rows; i++) {
+                gameCtx.beginPath();
+                gameCtx.moveTo(0, i * gridSize);
+                gameCtx.lineTo(gameCanvas.width, i * gridSize);
+                gameCtx.stroke();
+            }
+        }
+
+        // Toggle Sidebars on Mobile
+        toggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+
+        // View Tabs
+        viewTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                viewTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        // Property Tabs
+        propertyTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                propertyTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        // Creator Tabs
+        creatorTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                creatorTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        // Drawing Tools
+        drawingTools.forEach(tool => {
+            tool.addEventListener('click', () => {
+                drawingTools.forEach(t => t.classList.remove('active'));
+                tool.classList.add('active');
+            });
+        });
+
+        // Color Picker
+        colorOptions.forEach(color => {
+            color.addEventListener('click', () => {
+                colorOptions.forEach(c => c.classList.remove('active'));
+                color.classList.add('active');
+                ctx.strokeStyle = color.style.backgroundColor;
+                ctx.fillStyle = color.style.backgroundColor;
+            });
+        });
+
+        // Drawing on Canvas
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        drawingCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        drawingCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            
+            const currentTool = document.querySelector('.drawing-tool.active').dataset.tool;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        drawingCanvas.addEventListener('mouseup', () => isDrawing = false);
+        drawingCanvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // AI Assistant
+        aiButton.addEventListener('click', () => {
+            aiPanel.classList.toggle('active');
+        });
+
+        aiClose.addEventListener('click', () => {
+            aiPanel.classList.remove('active');
+        });
+
+        aiSend.addEventListener('click', sendAiMessage);
+        aiInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendAiMessage();
+        });
+
+        function sendAiMessage() {
+            const message = aiInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'ai-message ai-user';
+            userMsg.textContent = message;
+            aiMessages.appendChild(userMsg);
+            
+            // Clear input
+            aiInput.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'ai-message ai-bot';
+                
+                // Simple AI responses
+                if (message.toLowerCase().includes('speed')) {
+                    botMsg.textContent = "I've increased the player speed from 5 to 8. Try running the game now!";
+                } else if (message.toLowerCase().includes('jump')) {
+                    botMsg.textContent = "The jump height has been set to 300 pixels with gravity of 9.8.";
+                } else if (message.toLowerCase().includes('color')) {
+                    botMsg.textContent = "Changed the player color to blue. You can adjust it further in the properties panel.";
+                } else {
+                    botMsg.textContent = "I've implemented your request. Check the game preview to see the changes!";
+                }
+                
+                aiMessages.appendChild(botMsg);
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            }, 1000);
+            
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
+
+        // Asset Creation
+        createAssetBtn.addEventListener('click', () => {
+            assetModal.classList.add('active');
+        });
+
+        modalClose.addEventListener('click', () => {
+            assetModal.classList.remove('active');
+        });
+
+        // Game Preview
+        playButton.addEventListener('click', () => {
+            previewOverlay.classList.remove('active');
+            
+            // Simple animation for demo
+            const player = {
+                x: 100,
+                y: 100,
+                width: 50,
+                height: 50,
+                color: '#6e48aa',
+                speed: 5,
+                velocityY: 0,
+                jumping: false
+            };
+            
+            const keys = {};
+            
+            // Keyboard controls
+            window.addEventListener('keydown', (e) => {
+                keys[e.key] = true;
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                keys[e.key] = false;
+            });
+            
+            // Game loop
+            function gameLoop() {
+                gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+                drawGrid();
+                
+                // Player movement
+                if (keys['ArrowLeft']) player.x -= player.speed;
+                if (keys['ArrowRight']) player.x += player.speed;
+                
+                // Jumping
+                if (keys['ArrowUp'] && !player.jumping) {
+                    player.velocityY = -15;
+                    player.jumping = true;
+                }
+                
+                // Apply gravity
+                player.velocityY += 0.8;
+                player.y += player.velocityY;
+                
+                // Ground collision
+                if (player.y > gameCanvas.height - player.height) {
+                    player.y = gameCanvas.height - player.height;
+                    player.velocityY = 0;
+                    player.jumping = false;
+                }
+                
+                // Draw player
+                gameCtx.fillStyle = player.color;
+                gameCtx.fillRect(player.x, player.y, player.width, player.height);
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            gameLoop();
+        });
+
+        // Initialize
+        window.addEventListener('resize', resizeGameCanvas);
+        resizeGameCanvas();
+    </script>
+</body>
+</html>
